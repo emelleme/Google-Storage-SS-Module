@@ -38,7 +38,7 @@
 		}
 		
 		#	Constructor
-		function __construct ($expiry=60)
+		function __construct ($expiry=0)
 		{
 			# code...
 			# Populate the necessary headers
@@ -73,6 +73,28 @@
 		{
 			$subUrl = 'sql=SHOW+TABLES&encid='.$encid;
 			$req = self::request($subUrl, $method = "Get");
+    		return $req;
+		}
+		
+		public function select($column='ROWID',$tableid='',$where='',$order='')
+		{
+			//Get Table ID
+			$tableid = self::getTableId();
+			$subUrl = 'sql=SELECT+'.$column.'+FROM+'.$tableid;
+			$subUrl = ($where!='') ? $subUrl.'+WHERE+'.$where : $subUrl;
+			$subUrl = ($order!='') ? $subUrl.'+ORDER+BY+'.$order : $subUrl;
+			$req = self::request($subUrl, $method = "Get");
+    		return $req;
+		}
+		
+		public function insert($columns='',$values='')
+		{
+			//Get Table ID
+			$tableid = self::getTableId();
+			$subUrl = 'sql=INSERT+INTO+'.$tableid;
+			$subUrl = ($columns!='') ? $subUrl.'+('.implode(",",$columns).')' : $subUrl;
+			$subUrl = ($values!='') ? $subUrl.'+VALUES+'.'(\''.implode("','",$values).'\')' : $subUrl;
+			$req = self::request($subUrl, $method = "POST");
     		return $req;
 		}	
 	
