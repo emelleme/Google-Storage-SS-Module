@@ -44,4 +44,34 @@ class OAuthCallback_Controller extends ContentController {
 			$client->authenticate();
 		}
 	}
+	
+	public function refreshToken($arguments)
+	{
+		//Oauth callback for the Google.
+		// https://accounts.google.com/o/oauth2/auth?response_type=code&scope=https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/fusiontables&access_type=offline&redirect_uri=http://fatapp.emelle.me/canvas/oauth2callback&client_id=1021901972772.apps.googleusercontent.com&hl=en-US
+		$client = new apiClient();
+		$client->discover('oauth2');
+		$client->setScopes(array('https://www.googleapis.com/auth/devstorage.full_control'));
+		$config = DataObject::get_one('SiteConfig',false);
+		var_dump($config);
+		$currenttime = time();
+		$isExpired = ($config->expiry < $currenttime) ? TRUE : FALSE;
+			
+		if ($isExpired)
+		{
+			# Token Expired. Refresh that bad boy.
+			$client = new apiClient();
+			$client->refreshToken($config->refresh_token);
+			$client->authenticate();
+			$newtoken = json_decode($client->getAccessToken());
+			$config->expiry  = $currenttime + $newtoken->expires_in;
+			$config->access_token = $newtoken->access_token;
+			$config->write();
+			echo 'OAuth token refreshed!';
+  			var_dump($_SESSION['token']);
+		}else{
+			echo 'Token expires in '.(int)$config->expiry - (int)$currenttime.'seconds';
+  			var_dump($_SESSION['token']);
+		}
+	}
 }
